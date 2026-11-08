@@ -1,0 +1,3 @@
+1.2M	/home/pep-admin/ccbench-matrix-20261105T054527Z/data/uplink/_ref00_cubic
+22M	/home/pep-admin/ccbench-matrix-20261105T054527Z/data/uplink/pcc
+1.1M	/home/pep-admin/ccbench-matrix-20261105T054527Z/data/uplink/_ref01_cubic

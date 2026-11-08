@@ -1,0 +1,35 @@
+Subject: disable utils.update_submodules()
+
+src/experiments/setup.py:23 calls utils.update_submodules() unconditionally,
+which runs `git submodule update --init --recursive` across the whole tree.
+
+Observed on pep-star02, 2026-11-05: a plain
+
+    src/experiments/setup.py --schemes "taova indigo pcc vivace"
+
+went straight into cloning https://github.com/google/proto-quic.git -- a
+Chromium fork of several GB that docs/decisions/002 deliberately does not
+fetch, and which nothing in this project uses. Worse, the same command checks
+out over third_party/{genericCC,pcc,vivace,indigo}, which would overwrite the
+sources patched by 0001/0002 and the binaries compiled from them, reverting
+both patches with no sign that anything happened.
+
+Only setup.py calls it; src/experiments/test.py never does. So it becomes a
+loud no-op rather than being removed, and setup.py keeps working for
+everything else.
+
+Applied by docker/apply-patches.py :: no_submodule_update().
+
+--- a/src/helpers/utils.py
++++ b/src/helpers/utils.py
+@@
+ def update_submodules():
+-    cmd = 'git submodule update --init --recursive'
+-    check_call(cmd, shell=True)
++    # ccbench-remote: disabled on purpose. The submodules this image
++    # needs are already checked out, patched and compiled; an
++    # `update --init --recursive` here would fetch gigabytes we do
++    # not use (proto-quic) and check out over the patched sources.
++    sys.stderr.write('ccbench-remote: update_submodules() disabled; '
++                     'the tree in this image is already prepared\n')
++    return

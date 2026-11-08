@@ -1,0 +1,10 @@
+direction,scheme,outdir,start_utc,end_utc,runtime_s
+uplink,cubic,_ref00_cubic,2026-11-05T00:40:39Z,2026-11-05T00:44:19Z,180
+uplink,pcc,pcc,2026-11-05T00:44:19Z,2026-11-05T01:45:11Z,3600
+uplink,cubic,_ref01_cubic,2026-11-05T01:45:11Z,2026-11-05T01:48:50Z,180
+uplink,indigo,indigo,2026-11-05T01:48:50Z,2026-11-05T02:50:03Z,3600
+uplink,cubic,_ref02_cubic,2026-11-05T02:50:04Z,2026-11-05T02:53:43Z,180
+uplink,taova,taova,2026-11-05T02:53:43Z,2026-11-05T03:55:06Z,3600
+uplink,cubic,_ref03_cubic,2026-11-05T03:55:07Z,2026-11-05T03:58:45Z,180
+uplink,vivace,vivace,2026-11-05T03:58:46Z,2026-11-05T04:59:53Z,3600
+uplink,cubic,_ref04_cubic,2026-11-05T04:59:53Z,2026-11-05T05:03:32Z,180

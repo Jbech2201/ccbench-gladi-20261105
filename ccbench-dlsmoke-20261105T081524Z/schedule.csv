@@ -1,0 +1,6 @@
+direction,scheme,outdir,start_utc,end_utc,runtime_s
+downlink,indigo,indigo,2026-11-05T08:15:27Z,2026-11-05T08:18:03Z,120
+downlink,pcc,pcc,2026-11-05T08:18:04Z,2026-11-05T08:20:40Z,120
+downlink,cubic,cubic,2026-11-05T08:20:41Z,2026-11-05T08:23:19Z,120
+downlink,vivace,vivace,2026-11-05T08:23:19Z,2026-11-05T08:25:56Z,120
+downlink,taova,taova,2026-11-05T08:25:56Z,2026-11-05T08:28:33Z,120

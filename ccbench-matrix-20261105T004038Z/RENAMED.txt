@@ -1,0 +1,12 @@
+This directory was created as ~/ccbench-smoke4 and renamed to
+ccbench-matrix-20261105T004038Z on 2026-11-05 after the run finished.
+
+The name "smoke4" is wrong for it: it holds a full uplink matrix, not a smoke
+test. The matrix was started by accident (an empty CCB_SCHEMES= was read by
+${CCB_SCHEMES:-...} as "unset", so the script fell through to its default list)
+and was deliberately left running because both hosts were idle and all six
+patches were active. It is the intended experiment, not a trial.
+
+run.log, sizes.txt and the analyze-*.log files still contain the old
+/home/pep-admin/ccbench-smoke4 paths. They are left exactly as written -- they
+are the contemporaneous record and were not edited after the fact.

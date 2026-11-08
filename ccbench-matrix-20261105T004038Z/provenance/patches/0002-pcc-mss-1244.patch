@@ -1,0 +1,33 @@
+Subject: [PATCH] PCC UDT MSS 1464 -> 1244 for a 1280-byte path MTU
+
+ONLY apply this if the measurement path turns out to be the Tailscale overlay
+(MTU 1280). Upstream src/wrappers/patches/pcc.patch already lowers UDT's MSS
+from 1500 to 1464, i.e. 1500 minus the 36-byte pantheon-tunnel header. On a
+1280-byte path the inner budget is 1280 - 36 = 1244, so 1464 overflows and the
+datagrams fragment or are dropped.
+
+This patch is NOT part of the default build: on a 1500-byte path it would make
+PCC send needlessly small segments and the comparison with published numbers
+would no longer hold. scripts/01_build_base.sh applies it only when
+CCB_PATH_MTU=1280 is given.
+
+--- a/sender/src/core.cpp
++++ b/sender/src/core.cpp
+@@
+-	m_iMSS = 1464;
++	m_iMSS = 1244;
+--- a/receiver/src/core.cpp
++++ b/receiver/src/core.cpp
+@@
+-   m_iMSS = 1464;
++   m_iMSS = 1244;
+--- a/sender/src/buffer.h
++++ b/sender/src/buffer.h
+@@
+-   CSndBuffer(const int& size = 64, const int& mss = 1464);
++   CSndBuffer(const int& size = 64, const int& mss = 1244);
+--- a/receiver/src/buffer.h
++++ b/receiver/src/buffer.h
+@@
+-   CSndBuffer(int size = 32, int mss = 1464);
++   CSndBuffer(int size = 32, int mss = 1244);

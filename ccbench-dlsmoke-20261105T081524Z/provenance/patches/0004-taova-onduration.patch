@@ -1,0 +1,34 @@
+From: ccbench-remote
+Subject: [PATCH] taova: let test.py, not genericCC, decide when the flow stops
+
+src/wrappers/taova.py launches genericCC's sender with
+
+    offduration=1 onduration=1000000 traffic_params=deterministic,num_cycles=1
+
+onduration is in MILLISECONDS, so 1000000 = 1000 seconds, and with
+num_cycles=1 genericCC sends exactly one on-cycle of that length and then
+exits. The wrapper is never told the experiment runtime -- test.py kills the
+process group when the clock runs out -- so for any run longer than ~16.7
+minutes the sender quits early and test.py keeps the tunnel open over a dead
+flow for the remainder.
+
+OBSERVED, 2026-11-04 uplink matrix (-t 3600 --run-times 1):
+
+    taova_datalink_run1.log spans 1000.3 s of a requested 3600 s
+    src/analysis/plot.py:119  duration < 0.8 * runtime  -> run discarded
+    "Warning: ... had duration 1000.22 seconds but should have been around
+     3600 seconds. Ignoring this run."
+    pantheon_perf.json == {"taova": {}}
+
+The hour was not salvageable: there is simply no data after minute 16.7.
+
+Fix: raise the on-cycle to 36000000 ms (10 h), longer than any run we will
+ask for, so test.py remains the only thing that ends the flow. This does NOT
+change the congestion-control algorithm, the RemyCC .dna file, or MIN_RTT; it
+only stops genericCC from self-terminating mid-experiment.
+
+--- a/src/wrappers/taova.py
++++ b/src/wrappers/taova.py
+@@
+-            'offduration=1 onduration=1000000 traffic_params=deterministic,'
++            'offduration=1 onduration=36000000 traffic_params=deterministic,'

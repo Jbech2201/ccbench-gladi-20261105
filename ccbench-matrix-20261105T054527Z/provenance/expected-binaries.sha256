@@ -1,0 +1,10 @@
+# Locally compiled scheme binaries of ccbench-remote:20261104T173753Z
+# (docker/Dockerfile.remote, FROM pantheon-cc:latest, CCB_PATH_MTU=1280).
+# Recorded by docker/verify-image.py on the first successful build, 2026-11-05.
+# RE_RECORD, not MUST_MATCH: build outputs are not bit-reproducible across
+# toolchains, so these prove the two testbed hosts carry the SAME build -- that
+# argument rests on the image id, see docs/decisions/002.
+b2932f6d2233bdd87bcb1f8b32b4f98cda440b5a958640cc888380fc55a20446  third_party/genericCC/sender
+e8256527acb0c7cb115f0f7b26f6a0b9f63f061482a0aef2b29f1c981c51577b  third_party/genericCC/receiver
+634c6b163116632da583256cba20ea22f83d9890ce01e2337d8a44f0d8a46eeb  third_party/pcc/sender/app/appclient
+9ed18eb6cc31a19cc0c7ffee952cbb161db8995e893b0296d865ffc0ccc9a483  third_party/pcc/receiver/app/appserver

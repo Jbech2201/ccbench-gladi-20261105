@@ -1,0 +1,21 @@
+{
+    "cc_schemes": [
+        "taova"
+    ],
+    "flows": 1,
+    "git_summary": "branch: HEAD @ 23e738ce5acae1d36e321886cd613b0b9401ac11\nthird_party/genericCC @ d0153f8e594aa89e93b032143cedbdfe58e562f4\nthird_party/indigo @ 463d89b09699a57bfdfbae351646df6a60040b90\nthird_party/pantheon-tunnel @ f866d3f58d27afd942717625ee3a354cc2e802bd\nthird_party/pcc @ 1afc958fa0d66d18b623c091a55fec872b4981e1\n M receiver/src/buffer.h\n M receiver/src/core.cpp\n M sender/src/buffer.h\n M sender/src/core.cpp\nthird_party/vivace @ 2baf86211435ae071a32f96b7d8c504587f5d7f4\n",
+    "interval": 0,
+    "local_desc": "pep-star01",
+    "local_if": "tailscale0",
+    "mode": "remote",
+    "ntp_addr": "202.65.114.202",
+    "random_order": false,
+    "remote_desc": "pep-star02",
+    "remote_if": "tailscale0",
+    "remote_path": "pantheon@100.86.136.88:/pantheon",
+    "run_times": 1,
+    "runtime": 120,
+    "sender_side": "remote",
+    "server_side": "remote",
+    "start_run_id": 1
+}

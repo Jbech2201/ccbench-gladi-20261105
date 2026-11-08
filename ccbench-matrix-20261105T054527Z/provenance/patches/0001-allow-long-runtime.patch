@@ -1,0 +1,35 @@
+Subject: [PATCH] allow runtime > 60 s when PANTHEON_LONG_RUN=1
+
+Upstream hard-caps a single test run at 60 s. The thesis matrix needs one
+continuous 3600 s run per scheme per direction, so the cap is lifted, but only
+when the operator opts in explicitly via an environment variable. Without the
+variable the behaviour is byte-for-byte upstream (cap 60 s), so an accidental
+long run is impossible.
+
+See docs/decisions/001-long-runtime.md for the cost of a 3600 s run (log volume
+and analysis memory) and for the go/no-go gate.
+
+--- a/src/experiments/arg_parser.py
++++ b/src/experiments/arg_parser.py
+@@ -1,3 +1,4 @@
++import os
+ from os import path
+ import sys
+ import yaml
+@@ -166,8 +167,13 @@ def verify_test_args(args):
+             sys.exit('Cannot apply --prepend-mm-cmds, --append-mm-cmds or '
+                      '--extra-mm-link-args without pantheon tunnels')
+ 
+-    if args.runtime > 60 or args.runtime <= 0:
+-        sys.exit('runtime cannot be non-positive or greater than 60 s')
++    # ccbench-remote: opt-in long runs (see patches/0001-allow-long-runtime.patch)
++    max_runtime = 60
++    if os.environ.get('PANTHEON_LONG_RUN') == '1':
++        max_runtime = 3600
++
++    if args.runtime > max_runtime or args.runtime <= 0:
++        sys.exit('runtime cannot be non-positive or greater than %d s'
++                 % max_runtime)
+     if args.flows < 0:
+         sys.exit('flow cannot be negative')
+     if args.interval < 0:

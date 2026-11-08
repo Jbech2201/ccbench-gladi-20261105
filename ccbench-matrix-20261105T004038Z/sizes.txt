@@ -1,0 +1,9 @@
+1.3M	/home/pep-admin/ccbench-smoke4/data/uplink/_ref00_cubic
+12M	/home/pep-admin/ccbench-smoke4/data/uplink/pcc
+1.3M	/home/pep-admin/ccbench-smoke4/data/uplink/_ref01_cubic
+25M	/home/pep-admin/ccbench-smoke4/data/uplink/indigo
+1.2M	/home/pep-admin/ccbench-smoke4/data/uplink/_ref02_cubic
+33M	/home/pep-admin/ccbench-smoke4/data/uplink/taova
+1.2M	/home/pep-admin/ccbench-smoke4/data/uplink/_ref03_cubic
+23M	/home/pep-admin/ccbench-smoke4/data/uplink/vivace
+1.2M	/home/pep-admin/ccbench-smoke4/data/uplink/_ref04_cubic

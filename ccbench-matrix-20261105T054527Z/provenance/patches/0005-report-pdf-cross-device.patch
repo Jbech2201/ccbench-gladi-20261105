@@ -1,0 +1,40 @@
+From: ccbench-remote
+Subject: [PATCH] report.py: move the PDF across filesystems, not rename(2)
+
+src/analysis/report.py renders the report into utils.tmp_dir (/pantheon/tmp,
+inside the image) and then moves it to the data dir with os.rename(). We
+bind-mount the data dir from the host, so the two paths are on different
+filesystems and rename(2) fails with EXDEV:
+
+    OSError: [Errno 18] Invalid cross-device link
+      File "/pantheon/src/analysis/report.py", line 332, in run
+        os.rename(pdf_src_path, pdf_dst_path)
+
+OBSERVED, 2026-11-04 matrix: all four schemes. The PDF itself was fine --
+pdflatex reported "Output written on pantheon_report_<uid>.pdf (5 pages,
+187682 bytes)" -- but the failed move propagated up through analyze.py:
+
+    subprocess.CalledProcessError: Command '['python',
+      '/pantheon/src/analysis/report.py', ...]' returned non-zero exit status 1
+
+so every scheme ended with ANALYSIS_RC 1 even where the measurement and
+pantheon_perf.json were perfectly good.
+
+shutil.move() does copy+unlink when rename(2) says EXDEV.
+
+NOTE: this patch touches ANALYSIS only, never measurement. For data already
+collected against an earlier image, scripts/12_collect.sh applies the same
+edit inside the throwaway analysis container at runtime, so the measurement
+image id stays identical on both hosts (docs/decisions/002).
+
+--- a/src/analysis/report.py
++++ b/src/analysis/report.py
+@@
+ import re
+ import uuid
++import shutil
+@@
+-        os.rename(pdf_src_path, pdf_dst_path)
++        # ccbench-remote: tmp and data_dir are different filesystems
++        # (data_dir is a bind mount), so rename(2) gives EXDEV.
++        shutil.move(pdf_src_path, pdf_dst_path)

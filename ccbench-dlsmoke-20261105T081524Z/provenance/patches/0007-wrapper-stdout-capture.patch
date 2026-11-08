@@ -1,0 +1,112 @@
+ccbench-remote patch 0007 -- give every scheme binary its own output file
+=========================================================================
+
+Applied by docker/apply-patches.py :: wrapper_stdout_capture().
+Creates src/helpers/ccb_log.py and redirects stdout+stderr of the scheme
+binaries in src/wrappers/{pcc,vivace,taova,indigo}.py.
+
+WHAT IS WRONG UPSTREAM
+----------------------
+src/experiments/tunnel_manager.py:64 spawns the tunnel process with
+
+    procs[tun_id] = Popen(cmd_to_run, stdin=PIPE, stdout=PIPE, preexec_fn=os.setsid)
+
+and the scheme binary is started *inside* that process, so it inherits the same
+pipe. test.py reads the pipe only for the connection handshake and then sleeps
+out the runtime; nothing drains it again. Everything the binary prints collects
+in the 64 KiB kernel pipe buffer, and once that is full the binary BLOCKS in
+write(2) and never returns.
+
+PCC-Allegro walks into this for two reasons at once:
+  * third_party/pcc/sender/app/appclient.cpp:143-167 -- the monitor thread
+    prints one stats line per second for the whole run.
+  * third_party/pcc/sender/src/core.cpp has LIVE cout calls on the sending
+    path: :2487 "DROP!", :2619 "Hurry!"<<..., :2946 "insert". So the thread
+    that transmits packets is itself a writer to that pipe.
+
+MEASURED
+--------
+Two 3600 s uplink runs of pcc over the Tailscale path, pep-star01 -> pep-star02:
+
+    2026-11-04   data departures stop at t=2106 s
+    2026-11-05   data departures stop at t=2346.85 s
+                 614799 packets / 626846000 B sent, then nothing at all
+                 ACKs still arriving until t=2399.53 s
+                 largest gap anywhere before that point: < 2 s
+                 no error in test-uplink-pcc.log, "Done testing pcc", RC=0
+                 log spans 65% of runtime -> discarded by src/analysis/plot.py
+                 (`duration < 0.8 * self.runtime`), giving `{"pcc": {}}`
+
+65536 B of pipe divided by the ~28 B of a typical monitor line is ~2340 lines
+at one line per second, which is where the 2026-11-05 run stopped. The two runs
+differ because the trigger is cumulative BYTES printed, and that depends on how
+many digits are in the numbers being printed.
+
+WHAT THIS IS NOT
+----------------
+Not a congestion-control event, not loss, not a path change: the path sampler
+recorded distinct_routes=1 for the whole hour and there is no stall before the
+freeze. It is the same class of defect as patches/0004 (taova onduration =
+1000 s) and patches/0006 (iperf -t 75): a hard-coded assumption that nobody
+runs the benchmark this long.
+
+THE EDIT
+--------
+New file src/helpers/ccb_log.py exposing open_log(scheme, role), which returns
+an unbuffered append handle on
+
+    ${CCB_WRAPPER_LOG_DIR:-/pantheon/tmp}/ccb-wrapper-<scheme>-<role>-<pid>.log
+
+Unbuffered so a binary killed by test.py at the end of the run still leaves
+behind everything it printed.
+
+Then, in each of the four wrappers, both roles:
+
+-        check_call(cmd)
++        with ccb_log.open_log('<scheme>', '<role>') as handle:
++            check_call(cmd, stdout=handle, stderr=handle)
+
+and in pcc.py specifically:
+
+-        # suppress debugging output to stderr
+-        with open(os.devnull, 'w') as devnull:
+-            check_call(cmd, stderr=devnull)
++        with ccb_log.open_log('pcc', 'sender') as handle:
++            check_call(cmd, stdout=handle, stderr=handle)
+
+WHY ALL FOUR WRAPPERS AND NOT JUST PCC
+--------------------------------------
+All four inherit the same pipe. taova, indigo and vivace completing an hour is
+luck about how much they print, not safety -- vivace is the same UDT codebase as
+pcc, shipped pre-compiled, so its print volume cannot even be inspected. Fixing
+only pcc would leave the other three one verbose build away from the same
+silent truncation.
+
+Discarding pcc's stderr was also the single reason the failure had no witness,
+so that stops too.
+
+EFFECT ON THE MEASUREMENT
+-------------------------
+None on the algorithms: no scheme binary is recompiled and no protocol
+parameter changes. It moves where their console output lands. The write(2) that
+used to block on a full pipe now lands in a file, which is both the fix and the
+evidence.
+
+scripts/11_run_matrix.sh :: collect_wrapper_logs() copies both sides into the
+cell directory as wrapper-local.log / wrapper-remote.log after every cell.
+
+WHY cubic/bbr/vegas ARE NOT PATCHED
+-----------------------------------
+They are not safe by luck, they are safe by inspection:
+src/wrappers/{cubic,bbr,vegas}.py launch iperf with no `-i` flag, so the client
+emits a header plus a single final summary and the server one line per
+connection -- a few hundred bytes for a run of any length, against a 64 KiB
+pipe. Verified on the image, 2026-11-05:
+
+    cubic.py:16  cmd = ['iperf', '-Z', 'cubic', '-s', '-p', args.port]
+    cubic.py:21  cmd = ['iperf', '-Z', 'cubic', '-c', args.ip, '-p', args.port, ...]
+
+Adding `-i` to any of them would put them back in reach of this trap, since
+iperf then prints one line per interval for the whole run.
+Confirmed in practice: six 180 s cubic reference slots across two runs reported
+`wrapper output ... local=0B remote=0B` and none was ever truncated.

@@ -1,0 +1,5 @@
+708K	/home/pep-admin/ccbench-dlsmoke-20261105T081524Z/data/downlink/indigo
+476K	/home/pep-admin/ccbench-dlsmoke-20261105T081524Z/data/downlink/pcc
+616K	/home/pep-admin/ccbench-dlsmoke-20261105T081524Z/data/downlink/cubic
+424K	/home/pep-admin/ccbench-dlsmoke-20261105T081524Z/data/downlink/vivace
+288K	/home/pep-admin/ccbench-dlsmoke-20261105T081524Z/data/downlink/taova

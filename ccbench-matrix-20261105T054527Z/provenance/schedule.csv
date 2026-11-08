@@ -1,0 +1,4 @@
+direction,scheme,outdir,start_utc,end_utc,runtime_s
+uplink,cubic,_ref00_cubic,2026-11-05T05:45:29Z,2026-11-05T05:49:08Z,180
+uplink,pcc,pcc,2026-11-05T05:49:08Z,2026-11-05T06:50:11Z,3600
+uplink,cubic,_ref01_cubic,2026-11-05T06:50:12Z,2026-11-05T06:54:01Z,180
